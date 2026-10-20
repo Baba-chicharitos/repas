@@ -34,7 +34,14 @@ export function emptyState(): AppState {
   return {
     version: 1,
     recipes: [],
-    session: { target: 7, people: 2, selected: [], queue: [], seen: [] },
+    session: {
+      started: false,
+      target: 7,
+      people: 2,
+      selected: [],
+      queue: [],
+      seen: [],
+    },
     settings: { showCalories: false },
     list: null,
   };
@@ -135,6 +142,30 @@ export function validateRecipe(recipe: Recipe): void {
   if (!recipe.ingredients.length)
     throw new Error("Ajoutez au moins un ingrédient.");
   for (const ingredient of recipe.ingredients) {
+    if (
+      ingredient.ingredientOptionId !== undefined &&
+      (typeof ingredient.ingredientOptionId !== "string" ||
+        !ingredient.ingredientOptionId.trim() ||
+        ingredient.ingredientOptionId.length > 200)
+    )
+      throw new Error("Vérifiez la présentation de l’ingrédient.");
+    if (
+      ingredient.ciqualCode !== undefined &&
+      (typeof ingredient.ciqualCode !== "string" ||
+        !/^\d+$/.test(ingredient.ciqualCode))
+    )
+      throw new Error(
+        "Le code Ciqual doit être un code alimentaire numérique.",
+      );
+    if (
+      ingredient.gramsPerUnit !== undefined &&
+      (!Number.isFinite(ingredient.gramsPerUnit) ||
+        ingredient.gramsPerUnit <= 0 ||
+        ingredient.gramsPerUnit > 1000000)
+    )
+      throw new Error(
+        "La masse par unité doit être positive et ne pas dépasser 1 000 000 g.",
+      );
     if (!ingredient.name.trim() || ingredient.name.length > 120)
       throw new Error(
         "Chaque ingrédient doit avoir un nom (120 caractères maximum).",

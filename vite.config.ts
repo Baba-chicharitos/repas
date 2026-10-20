@@ -4,5 +4,5 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "/repas/",
   plugins: [react()],
-  test: { include: ["tests/**/*.test.ts"], environment: "node" },
+  test: { include: ["tests/**/*.test.ts"], environment: "node", maxWorkers: 1 },
 });

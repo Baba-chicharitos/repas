@@ -6,10 +6,12 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
+    actionTimeout: 10000,
     baseURL: "http://127.0.0.1:4173/repas/",
     channel: "chrome",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    launchOptions: { args: ["--disable-gpu", "--renderer-process-limit=1"] },
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

@@ -112,6 +112,41 @@ export function sanitizeState(raw: unknown): AppState {
     );
   const recipes = Array.isArray(data.recipes)
     ? data.recipes
+        // Invalid optional nutrition metadata must never discard a legacy recipe.
+        .map((r) => {
+          if (!r || !Array.isArray(r.ingredients)) return r;
+          return {
+            ...r,
+            ingredients: r.ingredients.map((i) => {
+              if (!i || typeof i !== "object") return i;
+              const clean = { ...i };
+              if (
+                clean.ingredientOptionId !== undefined &&
+                (typeof clean.ingredientOptionId !== "string" ||
+                  !clean.ingredientOptionId.trim() ||
+                  clean.ingredientOptionId.length > 200)
+              )
+                delete clean.ingredientOptionId;
+              if (
+                clean.ciqualCode !== undefined &&
+                (typeof clean.ciqualCode !== "string" ||
+                  !/^\d+$/.test(clean.ciqualCode))
+              ) {
+                delete clean.ciqualCode;
+                delete clean.ingredientOptionId;
+                delete clean.gramsPerUnit;
+              }
+              if (
+                clean.gramsPerUnit !== undefined &&
+                (!Number.isFinite(clean.gramsPerUnit) ||
+                  clean.gramsPerUnit <= 0 ||
+                  clean.gramsPerUnit > 1000000)
+              )
+                delete clean.gramsPerUnit;
+              return clean;
+            }),
+          };
+        })
         .filter(isRecipe)
         .filter((r, i, arr) => arr.findIndex((v) => v.id === r.id) === i)
     : [];
@@ -136,6 +171,7 @@ export function sanitizeState(raw: unknown): AppState {
     recipes,
     session: reconcileSession(
       {
+        started: s?.started === true || selected.length > 0,
         target,
         people: positiveInteger(s?.people ?? 0, 100) ? s!.people : 2,
         selected,

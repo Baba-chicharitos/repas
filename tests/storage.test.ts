@@ -9,6 +9,7 @@ import {
   updateState,
 } from "../src/storage";
 import type { Recipe } from "../src/types";
+import { decideRecipe, finishShopping, startShopping } from "../src/workflow";
 const recipe: Recipe = {
   id: "r",
   name: "Pâtes",
@@ -29,6 +30,99 @@ beforeEach(async () => {
   });
 });
 describe("IndexedDB", () => {
+  it("conserve une présentation générique et une ancienne association à un plat préparé", async () => {
+    const generic = {
+      ...recipe,
+      id: "generic",
+      calories: 540,
+      ingredients: [
+        {
+          ...recipe.ingredients[0]!,
+          ciqualCode: "9810",
+          ingredientOptionId: "pates-tagliatelles-crues",
+          name: "Tagliatelles (sèches, crues)",
+        },
+      ],
+    };
+    const prepared = {
+      ...recipe,
+      id: "prepared",
+      ingredients: [{ ...recipe.ingredients[0]!, ciqualCode: "24999" }],
+    };
+    await updateState((s) => ({ ...s, recipes: [recipe, generic, prepared] }));
+    expect((await loadState()).recipes).toEqual([recipe, generic, prepared]);
+  });
+  it("conserve les recettes anciennes, les calories manuelles, les associations et conversions après relecture", async () => {
+    const linked = {
+      ...recipe,
+      id: "linked",
+      calories: 540,
+      ingredients: [
+        {
+          ...recipe.ingredients[0]!,
+          ciqualCode: "17270",
+          quantity: 20,
+          unit: "ml" as const,
+          gramsPerUnit: 0.92,
+        },
+      ],
+    };
+    await updateState((s) => ({
+      ...s,
+      recipes: [recipe, linked],
+      settings: { showCalories: true },
+    }));
+    const restored = await loadState();
+    expect(restored.recipes).toEqual([recipe, linked]);
+    expect(restored.settings.showCalories).toBe(true);
+    expect(restored.version).toBe(1);
+  });
+  it("ne supprime pas une recette si ses métadonnées nutritionnelles facultatives sont corrompues", () => {
+    const state = emptyState();
+    const damaged = {
+      ...recipe,
+      calories: 540,
+      ingredients: [{ ...recipe.ingredients[0]!, gramsPerUnit: -1 }],
+    };
+    Reflect.set(damaged.ingredients[0]!, "ciqualCode", 123);
+    state.recipes = [damaged];
+    const restored = sanitizeState(state);
+    expect(restored.recipes).toHaveLength(1);
+    expect(restored.recipes[0]?.calories).toBe(540);
+    expect(restored.recipes[0]?.ingredients[0]?.ciqualCode).toBeUndefined();
+    expect(restored.recipes[0]?.ingredients[0]?.gramsPerUnit).toBeUndefined();
+  });
+  it("reprend l’étape de swipe ou la liste après relecture et conserve la suppression définitive", async () => {
+    await updateState((s) => startShopping({ ...s, recipes: [recipe] }, 2));
+    expect((await loadState()).session.started).toBe(true);
+    await updateState((s) => decideRecipe(s, "r", true, 1, 3));
+    expect((await loadState()).list).toBeNull();
+    await updateState((s) => decideRecipe(s, "r", true, 1, 7));
+    const saved = await loadState();
+    expect(saved.list?.portions).toBe(10);
+    await expect(updateState((s) => startShopping(s, 5))).rejects.toThrow(
+      "Terminez",
+    );
+    expect((await loadState()).list).toEqual(saved.list);
+    await updateState((s) => finishShopping(s, saved.list!.generatedAt));
+    const finished = await loadState();
+    expect(finished.list).toBeNull();
+    expect(finished.session.started).toBe(false);
+    expect(finished.session.selected).toEqual([]);
+  });
+  it("reprend une ancienne session et conserve une ancienne liste sans l’écraser", () => {
+    const legacy = emptyState();
+    legacy.recipes = [recipe];
+    legacy.session.selected = [
+      { id: "s", recipeId: "r", meals: 1, portions: 2 },
+    ];
+    Reflect.deleteProperty(legacy.session, "started");
+    expect(sanitizeState(legacy).session.started).toBe(true);
+    legacy.session.target = 1;
+    legacy.list = generateList(legacy.recipes, legacy.session);
+    legacy.list.items[0]!.checked = true;
+    expect(sanitizeState(legacy).list).toEqual(legacy.list);
+  });
   it("démarre sans données fictives", async () => {
     expect(await loadState()).toEqual(emptyState());
   });

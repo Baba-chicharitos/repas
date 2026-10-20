@@ -64,8 +64,10 @@ Ne recharger Nginx que si le test de configuration réussit. Conserver l’ancie
 - Ouvrir `/repas` : la redirection doit aboutir à `/repas/`.
 - Vérifier dans les outils du navigateur que les ressources de `/repas/assets/` répondent 200 avec les bons types MIME.
 - Ajouter une recette avec une photo et actualiser : les deux doivent rester présentes.
-- Choisir des repas, générer la liste, cocher un produit et actualiser.
-- Vérifier les quatre onglets et leur ouverture directe, par exemple `/repas/#courses`.
+- Répondre au nombre de repas, swiper jusqu’à compléter l’objectif et vérifier la génération automatique de la liste.
+- Cocher un produit et actualiser : la liste et la coche doivent rester, sans permettre de recommencer le swipe.
+- Appuyer sur « Courses terminées », puis actualiser : la liste doit rester supprimée et la question du nombre de repas doit apparaître.
+- Vérifier les trois onglets et leur ouverture directe, par exemple `/repas/#courses`.
 - Vérifier les applications SerranoTool existantes après l’ajout des emplacements.
 
 L’interface et les calculs ne font aucun appel externe. Le chargement initial de l’application nécessite l’accès au site ; aucune fonctionnalité de service worker ou garantie de chargement hors ligne n’est incluse dans cette version.

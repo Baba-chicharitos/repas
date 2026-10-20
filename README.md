@@ -1,6 +1,6 @@
 # Repas · SerranoTool
 
-Application personnelle React/TypeScript : choisissez des recettes avec des gestes de swipe, ajustez les repas et les portions, puis générez votre liste de courses. Aucune recette de démonstration n’est ajoutée automatiquement. Aucun serveur métier, compte, service cloud ou accès à une API n’est nécessaire.
+Application personnelle React/TypeScript : indiquez un nombre de repas, choisissez vos plats par swipe et retrouvez automatiquement votre liste de courses. L’interface utilise un fond bleu canard foncé et des accents bleus. Aucune recette de démonstration n’est ajoutée automatiquement. Aucun serveur métier, compte, service cloud ou accès à une API n’est nécessaire.
 
 ## Lancer le projet
 
@@ -20,9 +20,7 @@ npm run build
 npm run preview
 ```
 
-Le build est généré dans `dist/`. Vite utilise explicitement `base: '/repas/'`. La navigation repose sur les fragments (`#repas`, `#recettes`, `#courses`, `#options`) : elle fonctionne sur un hébergement statique et l’ouverture sans fragment arrive sur Repas.
-
-## Tests navigateur
+Le build est généré dans `dist/`. Vite utilise explicitement `base: '/repas/'`. La navigation comporte **Recette**, **Faites vos courses !** et **Options** (`#recettes`, `#courses`, `#options`). L’ouverture sans fragment arrive directement sur « Faites vos courses ! ». L’ancien fragment `#repas` ouvre également ce parcours.
 
 ## Essayer avec des recettes prêtes à utiliser
 
@@ -44,18 +42,45 @@ Playwright utilise **Chrome installé sur la machine** (`channel: 'chrome'`), co
 
 Les tests de calcul, permutation et stockage se trouvent dans `tests/`. Les tests navigateur utilisent des recettes temporaires dans des contextes isolés. Le jeu d’essai facultatif est également testé ; son chargement reste une action explicite.
 
-## Fonctionnement
+## Le parcours de courses
 
-- Les repas comptent pour l’objectif, indépendamment des portions. Les ingrédients sont multipliés par `portions sélectionnées / portions de référence`. La même recette peut être choisie dans plusieurs cycles : chaque choix est une entrée indépendante et toutes les quantités sont additionnées.
-- L’objectif ne peut pas devenir inférieur aux repas déjà sélectionnés. Il faut retirer ou réduire les plats concernés avant de le diminuer. Les repas et portions sont des entiers positifs ; les quantités d’ingrédients acceptent des décimales et zéro.
-- Une permutation Fisher-Yates contient les cartes à venir. Une carte est consommée après un refus ou une acceptation confirmée. Annuler le choix conserve la carte. Après actualisation, la carte sans décision reste affichée ; les cartes déjà passées ne reviennent pas avant la fin du cycle.
-- Les recettes nouvelles rejoignent le cycle en cours, les recettes supprimées sont retirées de la file et de la sélection. Modifier une recette conserve sa place dans le cycle et met à jour les prochains calculs.
+1. **Nombre de repas** : répondre à la question, puis appuyer sur « Choisir mes repas ».
+2. **Swipe** : glisser à gauche pour passer ou à droite pour sélectionner. La carte contient uniquement l’image et le nom du plat. Sous la carte, les repas et les portions se règlent chacun avec un bouton − à gauche, la quantité au centre et un bouton + à droite. Il n’y a aucun bouton oui/non. Sur ordinateur, on peut glisser à la souris ; pour l’accès au clavier, une carte ayant le focus répond aussi aux flèches gauche/droite.
+3. **Liste** : le dernier choix qui complète l’objectif génère automatiquement les ingrédients quantifiés et cochables. La liste est sauvegardée avec ses coches. Elle reste affichée après fermeture et réouverture et bloque toute nouvelle sélection, même depuis un autre onglet.
+4. **Fin** : seul le bouton **« Courses terminées »** supprime la liste et ses coches définitivement. Toutes les cases cochées ne terminent pas automatiquement les courses. Le bouton fonctionne aussi si certains produits restent décochés. Après la fin, l’application redemande le nombre de repas.
+
+Une sélection en cours est conservée après rechargement. Son récapitulatif repliable permet de modifier ou retirer un plat avant d’atteindre l’objectif. Les recettes et leurs photos restent dans le carnet quand les courses sont terminées. Modifier ou supprimer une recette pendant les courses ne change pas la liste déjà générée : elle constitue un instantané. Aucune liste ne peut être remplacée avant la fin explicite des courses, et aucun historique n’est conservé.
+
+Les données de la première version sont conservées : une liste existante devient la liste active et une sélection déjà commencée reprend à l’étape du swipe.
+
+## Portions, calculs et cycles
+
+- Les repas comptent pour l’objectif, indépendamment des portions. Les ingrédients sont multipliés par `portions sélectionnées / portions de référence`. La même recette peut être choisie dans plusieurs cycles : chaque choix est une entrée indépendante.
+- Par défaut, un plat compte pour un repas et deux portions (ou le nombre de personnes déjà sauvegardé dans l’ancienne version). Changer le nombre de repas adapte les portions jusqu’à ce que l’utilisateur règle lui-même celles-ci ; les valeurs deviennent alors indépendantes. Le nombre de repas pour le plat est limité aux repas restants.
+- Les repas et portions sont des entiers positifs ; les quantités d’ingrédients acceptent des décimales et zéro.
+- Une permutation Fisher-Yates contient les cartes à venir. Après actualisation, la carte sans décision reste affichée ; les cartes déjà passées ne reviennent pas avant la fin du cycle. Les refus ne bloquent jamais le cycle.
+- Les recettes nouvelles rejoignent le cycle en cours, les recettes supprimées sont retirées de la file et de la sélection. Modifier une recette conserve sa place dans le cycle.
 - Les noms sont comparés exactement après normalisation Unicode NFC, suppression des espaces aux extrémités, réduction des espaces multiples et conversion en minuscules. Aucun rapprochement approximatif, singulier/pluriel ou suppression d’accent n’est appliqué.
-- Les unités kg/g et L/ml sont converties et regroupées. Les autres unités sont regroupées uniquement si elles sont identiques. Si un même produit compatible possède plusieurs catégories, la première catégorie rencontrée dans la sélection est utilisée. On peut la corriger dans les recettes avant de régénérer la liste.
-- Les calculs utilisent des fractions `BigInt`, avec arrondi final à six décimales, sans cumuler les arrondis intermédiaires. À partir de 1 000 g/ml, l’affichage utilise kg/L.
-- La liste est un instantané. Modifier ou supprimer une recette ne change pas les produits et les coches de cette liste. Générer à nouveau la remplace intégralement, après confirmation si une liste existe. Aucune ancienne liste n’est archivée.
-- « Nouvelle sélection » vide les choix après confirmation et conserve les recettes, les réglages et la liste de courses existante.
-- Les calories sont saisies manuellement. L’option masque leur affichage dans les cartes et les détails. Le champ reste disponible dans le formulaire afin de pouvoir saisir cette donnée, quelle que soit la préférence d’affichage.
+- Les unités kg/g et L/ml sont converties et regroupées. Les autres unités ne sont regroupées que si elles sont identiques. Si un même produit possède plusieurs catégories, la première catégorie rencontrée dans la sélection est utilisée.
+- Les calculs utilisent des fractions `BigInt`, avec arrondi final à six décimales. À partir de 1 000 g/ml, l’affichage utilise kg/L.
+
+## Nutrition locale et choix des ingrédients
+
+La base `src/data/ciqual-2025.json` contient les 3 484 références Ciqual 2025, avec quatre nutriments pour 100 g. Le catalogue est embarqué avec l’application et validé au chargement. La recherche et les calculs ne nécessitent aucune API ni requête réseau. Le JSON fourni n’est pas réécrit par l’application.
+
+Dans le formulaire de recette, le champ **Nom** propose les variantes groupées par famille dès la saisie : « pâtes », « pois-chiche », « riz », etc. Accents, casse, tirets et apostrophes sont normalisés pour la recherche. Les suggestions habituelles utilisent exclusivement les références `isIngredientCandidate=true`. Les autres références restent disponibles pour les associations déjà enregistrées. Choisir une variante est obligatoire pour établir le lien : taper un nom ou quitter le champ ne sélectionne aucun aliment. Au clavier, utiliser les flèches puis Entrée ; Échap ferme les suggestions. La recherche par nom ou code se fait directement dans ce champ, sans section Ciqual supplémentaire ni boutons d’association.
+
+Les présentations supplémentaires, comme les tagliatelles ou les coquillettes, portent la mention **Valeurs nutritionnelles génériques** dans les suggestions. Elles enregistrent leur `ingredientOptionId` et le `ciqualCode` de référence, sans créer de valeurs nutritionnelles spécifiques. Le nom de la présentation et sa catégorie sont utilisés pour la recette et les courses. La mention **Profil générique** apparaît dans le bloc Calories sur les cartes lorsque la nutrition est activée.
+
+Les quantités en g/kg sont directement convertibles. Pour les ml, L, unités, cuillères et pincées, renseigner la masse comestible en grammes pour **une unité de l’unité sélectionnée** : par exemple 0,92 g pour 1 ml, ou 920 g pour 1 L, uniquement si cette conversion est justifiée pour l’ingrédient. Aucun poids ou facteur de densité n’est supposé. Changer l’unité ou le profil efface la conversion ; modifier le nom demande une nouvelle association.
+
+Les calories, protéines, glucides et lipides apparaissent uniquement sur les cartes de swipe lorsque l’option **Afficher les informations nutritionnelles** est activée. Quatre blocs colorés à coins arrondis affichent les valeurs pour **une portion de référence** : total des ingrédients divisé par les portions de référence de la recette. Ces chiffres restent indépendants des portions choisies pour les courses. Aucun panneau nutritionnel ni champ de calories n’est affiché dans l’éditeur ou le détail des recettes. Les anciennes calories manuelles restent conservées lors des modifications, sans remplacer le calcul Ciqual. La préférence d’affichage est sauvegardée dans IndexedDB.
+
+Les blocs affichent des entiers arrondis au supérieur et aucun sous-titre « par portion ». Un préfixe `~` indique un profil générique, une conversion de masse ou une valeur issue d’un seuil/des traces ajoutées à une contribution connue. Les données manquantes et traces sans valeur quantifiée sont représentées par `—` ; leur nature reste expliquée par le titre du bloc. Les calculs internes et le catalogue conservent leur précision.
+
+Le calcul additionne `masse × valeur / 100`, puis divise par les portions de référence. Une sélection multiplie la valeur par portion par les portions choisies, sans multiplicateur supplémentaire pour les repas. Les arrondis sont réservés à l’affichage. Les valeurs sous un seuil restent des intervalles (`< …` ou `… à < …`) ; les traces restent qualitatives. Les données manquantes, codes inconnus et conversions absentes produisent un résultat indisponible ou partiel avec les ingrédients à vérifier, jamais une valeur inventée. Une ligne de quantité nulle contribue zéro sans nécessiter d’association.
+
+Les anciennes recettes, leurs calories manuelles, leurs codes et la liste de courses actuelle sont conservés. La base IndexedDB et la version de l’état restent inchangées. Les champs nutritionnels sont facultatifs ; aucune association automatique n’est créée au chargement. Les familles et libellés de présentation du catalogue enrichi sont des aides à la recherche, distinctes des valeurs officielles Ciqual.
 
 ## Stockage et images
 
@@ -71,14 +96,24 @@ Les données appartiennent au navigateur et à l’origine HTTPS. Elles ne sont 
 
 ```text
 src/types.ts          modèles explicites
+src/data/ciqual-2025.json catalogue fourni, références et nutrition Ciqual
+src/ciqual.ts         validation, index local, recherche par familles
+src/nutrition.ts      conversions, calculs et valeurs incomplètes
+src/NutritionSummary.tsx quatre blocs nutritionnels sur la carte, par portion de référence
+src/IngredientNameInput.tsx autocomplétion tactile et clavier
+src/IngredientSuggestions.tsx familles et choix explicites de variantes
+src/IngredientMassField.tsx conversion en grammes pour les unités et volumes
 src/domain.ts         calculs, validation, sélection et permutation
 src/storage.ts        IndexedDB et transactions
 src/images.ts         validation et compression des photos
 src/components.tsx    champs, images et dialogues accessibles
 src/RecipeEditor.tsx  formulaire complet des recettes
-src/SwipeCard.tsx     gestes Pointer Events et boutons équivalents
-src/App.tsx           quatre pages et orchestration
+src/SwipeCard.tsx     gestes Pointer Events et accès au clavier
+src/workflow.ts       étapes, génération automatique, verrouillage et fin
+src/sampleRecipes.ts  jeu de 8 recettes chargé uniquement sur demande
+src/App.tsx           trois onglets et orchestration
 src/styles.css        palette SerranoTool, responsive et zones de sécurité
+src/theme.css         direction artistique bleu canard et accents bleus
 ```
 
 Les boutons et dialogues fonctionnent au clavier. Les dialogues natifs gèrent le focus et la touche Échap ; les animations respectent la préférence de réduction des mouvements. `touch-action: pan-y` autorise le défilement vertical sur les cartes. La capture du pointeur n’intervient qu’après identification d’un geste horizontal.

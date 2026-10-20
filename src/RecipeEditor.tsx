@@ -11,6 +11,8 @@ import {
 import { uid, validateRecipe } from "./domain";
 import { compressImage } from "./images";
 import { Modal, RecipeImage } from "./components";
+import { IngredientMassField } from "./IngredientMassField";
+import { IngredientNameInput } from "./IngredientNameInput";
 
 const newIngredient = (): Ingredient => ({
   id: uid(),
@@ -33,9 +35,6 @@ export function RecipeEditor({
   const [name, setName] = useState(recipe?.name ?? "");
   const [portions, setPortions] = useState(
     String(recipe?.referencePortions ?? 2),
-  );
-  const [calories, setCalories] = useState(
-    recipe?.calories === undefined ? "" : String(recipe.calories),
   );
   const [ingredients, setIngredients] = useState<
     (Omit<Ingredient, "quantity"> & { quantity: string })[]
@@ -71,7 +70,7 @@ export function RecipeEditor({
         name: i.name.trim(),
         quantity: i.quantity.trim() === "" ? NaN : Number(i.quantity),
       })),
-      ...(calories.trim() !== "" ? { calories: Number(calories) } : {}),
+      ...(recipe?.calories !== undefined ? { calories: recipe.calories } : {}),
       ...(recipe?.imageId ? { imageId: recipe.imageId } : {}),
     };
     try {
@@ -184,19 +183,6 @@ export function RecipeEditor({
                 portions.
               </small>
             </label>
-            <label className="field">
-              Calories par portion <span className="optional">facultatif</span>
-              <input
-                type="number"
-                min="0"
-                max="100000"
-                step="any"
-                inputMode="decimal"
-                value={calories}
-                placeholder="kcal"
-                onChange={(e) => setCalories(e.target.value)}
-              />
-            </label>
           </div>
           <div className="section-line">
             <h3>Les ingrédients</h3>
@@ -223,18 +209,13 @@ export function RecipeEditor({
                     <Trash2 size={17} />
                   </button>
                 </div>
-                <label className="field ingredient-name">
-                  Nom
-                  <input
-                    required
-                    maxLength={120}
-                    value={ingredient.name}
-                    placeholder="Tomates, pâtes, œufs…"
-                    onChange={(e) =>
-                      updateIngredient(ingredient.id, { name: e.target.value })
-                    }
-                  />
-                </label>
+                <IngredientNameInput
+                  ingredient={ingredient}
+                  onChange={(change) => {
+                    const { quantity: _quantity, ...fields } = change;
+                    updateIngredient(ingredient.id, fields);
+                  }}
+                />
                 <div className="ingredient-amount">
                   <label className="field">
                     Quantité
@@ -260,6 +241,7 @@ export function RecipeEditor({
                       onChange={(e) =>
                         updateIngredient(ingredient.id, {
                           unit: e.target.value as Unit,
+                          gramsPerUnit: undefined,
                         })
                       }
                     >
@@ -284,6 +266,13 @@ export function RecipeEditor({
                     ))}
                   </select>
                 </label>
+                <IngredientMassField
+                  ingredient={ingredient}
+                  onChange={(change) => {
+                    const { quantity: _quantity, ...fields } = change;
+                    updateIngredient(ingredient.id, fields);
+                  }}
+                />
               </div>
             ))}
           </div>

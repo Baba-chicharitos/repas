@@ -1993,6 +1993,318 @@ body {
 .shopping-row input {
   z-index: 1;
 }
+/* Three-step shopping flow, following the simple card sketch. */
+body {
+  background: #fbfcfd;
+}
+.site-header {
+  justify-content: center;
+  border: 0;
+  padding: 22px 0 16px;
+}
+.brand {
+  font-size: 31px;
+  font-weight: 760;
+  letter-spacing: -1.3px;
+}
+.app-page {
+  min-height: 0;
+  margin-top: 20px;
+  margin-bottom: calc(115px + env(safe-area-inset-bottom));
+}
+.workflow-page {
+  width: min(580px, calc(100% - 32px));
+  margin-top: 8px;
+}
+.bottom-nav {
+  grid-template-columns: 1fr 1.65fr 1fr;
+  width: min(560px, calc(100% - 32px));
+}
+.bottom-nav a {
+  font-size: 11px;
+  min-height: 55px;
+}
+.goal-screen {
+  width: min(390px, 100%);
+  min-height: min(500px, calc(100svh - 190px));
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 30px 12px;
+}
+.goal-screen h1 {
+  font-size: clamp(25px, 4vw, 32px);
+  letter-spacing: -0.8px;
+}
+.goal-screen > p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 17px;
+}
+.goal-screen form {
+  width: min(300px, 100%);
+  margin-top: 29px;
+}
+.goal-screen .number-field {
+  margin-bottom: 25px;
+}
+.goal-screen .number-field > span {
+  font-size: 11px;
+}
+.goal-screen .stepper {
+  width: 100%;
+  height: 57px;
+}
+.goal-screen .stepper button {
+  width: 56px;
+}
+.goal-screen .stepper input {
+  font-size: 23px;
+}
+.goal-screen > .button {
+  margin-top: 25px;
+}
+.workflow-progress {
+  text-align: center;
+  color: #8b96a1;
+  font-size: 12px;
+  margin: 5px 0 16px;
+}
+.swipe-screen {
+  max-width: 480px;
+  margin: auto;
+}
+.swipe-screen .discovery {
+  padding: 8px 11px 16px;
+}
+.swipe-area {
+  max-width: 440px;
+}
+.card-stack {
+  height: calc(100% - 8px);
+  top: 8px;
+  left: 9px;
+  right: 9px;
+  transform: rotate(-2.5deg);
+  border: 1px solid #d8e2eb;
+  background: #eaf0f5;
+  border-radius: 23px;
+}
+.swipe-card {
+  border-radius: 22px;
+  border-color: #e4e9ee;
+  cursor: grab;
+  box-shadow: 0 7px 22px #173d6509;
+}
+.swipe-card:active {
+  cursor: grabbing;
+}
+.swipe-photo {
+  height: clamp(180px, calc(100svh - 345px), 410px);
+}
+.swipe-photo .recipe-placeholder > span:not(.placeholder-seed) {
+  display: none;
+}
+.swipe-description {
+  padding: 19px 20px 21px;
+  text-align: center;
+}
+.swipe-description h2 {
+  font-size: 23px;
+  margin: 0;
+}
+.meal-quantity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 0 20px;
+  max-width: 410px;
+  margin: 0 auto;
+}
+.meal-quantity strong {
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.6px;
+}
+.quantity-button {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid #d6e0e9;
+  background: white;
+  color: var(--primary);
+}
+.quantity-button:hover:not(:disabled) {
+  background: var(--soft);
+}
+.portion-details {
+  max-width: 350px;
+  text-align: center;
+  margin: 13px auto 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.portion-details summary {
+  cursor: pointer;
+  padding: 7px;
+}
+.portion-details .number-field {
+  text-align: left;
+  margin: 13px auto;
+  width: 230px;
+  max-width: 100%;
+}
+.portion-details .stepper {
+  width: 100%;
+}
+.gesture-hint {
+  text-align: center;
+  color: #97a2ad;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 9px;
+}
+.selection-details {
+  margin: 22px 10px 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.selection-details summary,
+.menu-details summary {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px 0;
+}
+.shopping-screen {
+  padding-top: 15px;
+}
+.shopping-screen h1 {
+  font-size: clamp(25px, 5vw, 32px);
+  letter-spacing: -0.8px;
+}
+.shopping-screen .page-subtitle {
+  font-size: 12px;
+}
+.shopping-progress > strong {
+  font-size: 13px;
+}
+.menu-details {
+  margin: 25px 0;
+  padding: 10px 17px;
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  background: white;
+}
+.menu-details p {
+  display: flex;
+  justify-content: space-between;
+  gap: 13px;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.menu-details strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.menu-details p > span {
+  color: var(--muted);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.finish-shopping {
+  min-height: 51px;
+}
+.finish-note {
+  text-align: center;
+  color: #8b96a1;
+  font-size: 11px;
+  margin-top: 11px;
+}
+.coming-soon {
+  display: inline-block;
+  font-size: 10px;
+  color: #7b8792;
+  border-radius: 20px;
+  background: #f0f3f6;
+  padding: 5px 9px;
+  margin-top: 10px;
+}
+@media (max-width: 680px) {
+  .site-header {
+    padding: 17px 0 10px;
+  }
+  .brand {
+    font-size: 29px;
+  }
+  .bottom-nav {
+    width: 100%;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .bottom-nav a {
+    font-size: 10px;
+  }
+  .app-page {
+    margin-top: 17px;
+  }
+  .workflow-page {
+    margin-top: 8px;
+  }
+  .swipe-description {
+    padding: 16px 17px 18px;
+  }
+  .swipe-description h2 {
+    font-size: 21px;
+  }
+  .workflow-progress {
+    font-size: 11px;
+    margin: 2px 0 11px;
+  }
+  .meal-quantity {
+    padding: 0 20px;
+  }
+  .meal-quantity strong {
+    font-size: 21px;
+  }
+  .quantity-button {
+    width: 43px;
+    height: 43px;
+  }
+  .portion-details {
+    margin-top: 9px;
+    font-size: 10px;
+  }
+  .gesture-hint {
+    font-size: 9px;
+    margin-top: 6px;
+  }
+  .swipe-photo .plate {
+    width: 135px;
+    height: 135px;
+  }
+  .goal-screen {
+    padding: 30px 6px;
+  }
+  .goal-screen h1 {
+    font-size: 28px;
+  }
+  .goal-screen > p {
+    font-size: 12px;
+  }
+  .goal-screen .stepper input,
+  .portion-details .stepper input {
+    font-size: 18px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
